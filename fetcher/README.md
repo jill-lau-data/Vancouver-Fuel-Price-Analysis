@@ -1,44 +1,65 @@
-# ⛽ Google Apps Script Gas Price Fetcher 🚗💨  
+# 🛠️ Automated Data Ingestion Pipeline (Google Apps Script)
 
-## What’s This All About? 📋  
-Welcome to the **Google Apps Script Gas Price Fetcher**—my handy little tool that snags gas prices from GasBuddy.com for 18 spots across Greater Vancouver! 🌟 This script saves the data into a Google Sheet, making it super easy to see what’s happening at the pump. It’s the first step in my quest to figure out if Richmond really does have the cheapest gas at night—like my friends say after dinner! 🍽️  
+**A serverless ETL (Extract, Transform, Load) solution designed to automate the collection of real-time retail fuel pricing data from GasBuddy.**
 
-## Data Source and Output
+![Google Apps Script](https://img.shields.io/badge/Google_Apps_Script-4285F4?style=flat&logo=google-apps-script&logoColor=white)
+![Google Sheets](https://img.shields.io/badge/Google_Sheets-34A853?style=flat&logo=google-sheets&logoColor=white)
+![Status](https://img.shields.io/badge/Status-Active_Production-success)
 
-The fetcher uses a Google Sheet to manage station IDs and store gas price data:
+## 📖 Introduction
 
-- **StationIDs Tab**: Contains the list of station IDs input by the user. The fetcher reads these IDs to retrieve gas price data.
-- **GasPrices Tab**: Stores the gas price data fetched for the specified station IDs.
-
-You can view the data here:
-[Vancouver Gas Price Data](https://docs.google.com/spreadsheets/d/e/2PACX-1vRDGPYEan2SSVaR3j2zN8tms3qPBNFzXB-C1SLdngzT-N0Sv2AmslSLbHp8zRX202drBACB0CgRrbI_/pubhtml)
-
-**Note**: The sheet is published for public viewing. To add or modify station IDs, contact the repository owner for edit access.
-
-## How to Use It? 🛠️  
-1. **Set Up Your Google Sheet**: Create a new Google Sheet and name it something cool like “GasPriceAdventure”.  
-2. **Add the Script**: Copy the code from `gas_price_fetcher.js` into Google Apps Script (go to Extensions > Apps Script in your Google Sheet).
-3. **Set Up the StationIDs Tab**: This tab is super important—it’s the key to controlling what stations the script fetches! Add the station IDs, names, areas, locations, and brands you want to track (more on that below). 
-4. **Run It**: Hit the `getGasPrice()` function to start collecting data. Set up a trigger (like hourly) under the clock icon to keep it going!  
-5. **Check the Data**: Your sheet will have two tabs—`GasPrices` for the juicy price data and `StationIDs` for station details.
-
-## Why These 18 Spots? 🤔  
-Okay, let’s talk about why I picked these 18 locations! First off, I didn’t include Abbotsford because, well, everyone knows it’s cheaper than Metro Vancouver, so it wasn’t part of my plan this time. Since I live in Richmond, I know which stations here tend to be more wallet-friendly, so I added four stations I’m familiar with—ones my friends and I often hit up after dinner. For the other cities like Vancouver, Burnaby, and Port Moody, I chose stations that are either on the same street or super close to each other, making it easier to compare. Plus, I checked GasBuddy’s list of cheapest stations and picked ones that were often in the top few spots. It’s all about finding those sweet deals! If you’ve got ideas for other stations to add, let me know!  😄  
-
-## Data Dictionary 📚  
-Here’s what you’ll find in your Google Sheet:  
-- **GasPrices Tab** - fetch from GasBuddy.com:  
-  - `Timestamp`: When the price was grabbed.  
-  - `Station ID`: A unique ID for each station.  
-  - `Regular Price`: The price in cents (e.g., 149.8¢).  
-- **StationIDs Tab** - mannually input by myself and get from GasBuddy.com:  
-  - `Station ID`: Matches the GasPrices tab.  
-  - `Station Name`: The station’s name.  
-  - `Area`: Where it’s located (e.g., Richmond).  
-  - `Location`: The exact spot.  
-  - `Brand`: The gas company (e.g., Chevron).
- 
+This component serves as the **Data Ingestion Layer** for the Vancouver Fuel Price Analysis project. Using Google Apps Script (GAS), it bypasses the need for dedicated server infrastructure to perform scheduled web scraping, ensuring a consistent and cost-effective flow of raw data into our analysis environment.
 
 
-## Need Help? 📧  
-Stuck or just want to chat about gas prices? Drop me a line at jill.yt.lau@gmail.com—I’d love to hear your thoughts or help you get started! 🚙💙
+
+## ⚙️ How it Works
+
+The script is engineered to handle high-frequency data retrieval for 18 targeted fuel stations across the Greater Vancouver area.
+
+1. **Extraction:** The script targets specific Station IDs on GasBuddy.com using `UrlFetchApp`.
+2. **Transformation:** Raw HTML/JSON responses are parsed to isolate the `Regular Price` and `Timestamp`.
+3. **Loading:** Data is appended to a centralized Google Sheet, creating a persistent time-series database.
+
+## 🗂️ Data Architecture
+
+The ingestion engine relies on two primary data structures within the spreadsheet:
+
+| Tab Name | Function | Data Source |
+| :--- | :--- | :--- |
+| **`StationIDs`** | **Master Data:** Contains Station ID, Name, Area, and Brand. | Manual/Static |
+| **`GasPrices`** | **Transactional Data:** Stores Timestamp, Station ID, and Regular Price. | Automated (Script) |
+
+## 🚀 Deployment Guide
+
+To deploy this pipeline in your own environment:
+
+1. **Initialize Spreadsheet:** Create a new Google Sheet and define the `StationIDs` and `GasPrices` tabs.
+2. **Access Apps Script:** Navigate to `Extensions` > `Apps Script`.
+3. **Source Code:** Copy the contents of [`gas_price_fetcher.js`](./gas_price_fetcher.js) into the editor.
+4. **Configuration:** Ensure the `Sheet ID` and tab names in the script match your local setup.
+5. **Automation:** Click the **Triggers (Clock icon)** in the sidebar. Set the `getGasPrice` function to run on a **Time-driven** trigger (e.g., Hourly) to begin the automated collection.
+
+## 🎯 Selection Logic (The 18-Station Strategy)
+
+The stations were strategically selected based on two criteria:
+* **Hypothesis Testing:** Stations in Richmond were chosen to validate the "late-night price drop" theory.
+* **Geographical Benchmarking:** Stations in Vancouver, Burnaby, and Port Moody were selected based on proximity to each other to minimize "location noise" when comparing brand-specific pricing.
+* **Cheapest Market Selection:** Heavily weighted towards stations consistently ranked as "Top 5 Cheapest" on GasBuddy to ensure the analysis focuses on the competitive edge of the market.
+
+## 📑 Data Dictionary
+
+### GasPrices (Fact Table)
+* `Timestamp`: ISO 8601 formatted time of retrieval.
+* `Station ID`: Foreign key linked to the Master Data.
+* `Regular Price`: Unit price in CAD cents (standardized for calculation).
+
+### StationIDs (Dimension Table)
+* `Station ID`: Unique identifier.
+* `Station Name / Brand`: Service provider details.
+* `Area / Location`: Specific municipality and cross-streets for geospatial grouping.
+
+## 📬 Contact
+
+**Jill Lau** | Senior Analytics Engineer  
+Specializing in Serverless Data Pipelines & BI Solutions  
+📧 [jill.yt.lau@gmail.com](mailto:jill.yt.lau@gmail.com)
