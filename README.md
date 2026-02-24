@@ -1,4 +1,4 @@
-# ⛽ Vancouver Gas Price Analysis Project 🚗💨
+# ⛽ Vancouver Fuel Price Analysis Project 🚗💨
 
 **An automated data ingestion and statistical analysis pipeline designed to uncover temporal pricing anomalies in the Greater Vancouver retail fuel market.**
 
